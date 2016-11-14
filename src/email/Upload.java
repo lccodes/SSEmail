@@ -14,7 +14,17 @@ import javax.mail.internet.MimeMessage;
 import com.google.api.client.util.Base64;
 import com.google.api.services.gmail.model.Message;
 
+import encrypt.EncryptedIndex;
+
 public final class Upload {
+	
+	/**
+	 * Uploads an EncryptedIndex
+	 * @throws IOException 
+	 */
+	public static boolean uploadEncryptedIndex(EmailHandler handler, EncryptedIndex index) throws IOException {
+		return uploadFiles(handler, index.FILEENCRYPTED) && uploadFiles(handler, index.KEYWORDENCRYPTED);
+	}
 	
 	/**
 	 * Uploads a file and its keywords

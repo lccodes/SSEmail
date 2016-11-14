@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +21,12 @@ import org.crypto.sse.CryptoPrimitives;
 import org.crypto.sse.TextExtractPar;
 import org.crypto.sse.TextProc;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
 public class EncryptedIndex {
 	private final String PATH;
-	public final Multimap<String, String> ENCRYPTED;
+	public final Map<String, String> KEYWORDENCRYPTED;
+	public final Map<String, String> FILEENCRYPTED;
 	public final Salt SALT;
 	
 	public EncryptedIndex(String saltPath, String path) {
@@ -36,7 +36,8 @@ public class EncryptedIndex {
 			 salt = Salt.fileToKey(saltPath);
 		} catch (IOException e1) {
 			System.out.println("Could not find salt file");
-			this.ENCRYPTED = null;
+			this.KEYWORDENCRYPTED = null;
+			this.FILEENCRYPTED = null;
 			this.SALT = null;
 			return;
 		}
@@ -48,16 +49,32 @@ public class EncryptedIndex {
 		try {
 			key = CryptoPrimitives.keyGenSetM(scan.next(), SALT.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 		} catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e1) {
-			this.ENCRYPTED = null;
+			this.KEYWORDENCRYPTED = null;
+			this.FILEENCRYPTED = null;
 			e1.printStackTrace();
 			return;
 		}
 		
-		Multimap<String, String> encrypted = ArrayListMultimap.create();
-		TextProc.listf(PATH, new ArrayList<File>());
+		Map<String, String> keyword = null;
+		Map<String, String> file = null;
 		try {
+			TextProc.listf(PATH, new ArrayList<File>());
 			TextProc.TextProc(false, PATH);
-			Multimap<String, String> plaintext = TextExtractPar.lp1;
+			keyword = setupIndex(key, TextExtractPar.lp1);
+			file = setupIndex(key, TextExtractPar.lp2);
+		} catch (InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException
+				| NoSuchProviderException | NoSuchPaddingException | InvalidKeySpecException | IOException e) {
+			e.printStackTrace();
+		}
+		
+		this.KEYWORDENCRYPTED = keyword;
+		this.FILEENCRYPTED = file;
+	}
+
+	private Map<String, String> setupIndex(byte[] key, Multimap<String, String> plaintext) {
+		Map<String, String> encrypted = new HashMap<String, String>();
+		
+		try {
 			int max = 0;
 			Map<String, Integer> lengths = new HashMap<String, Integer>();
 			for (Entry<String, Collection<String>> entry : plaintext.asMap().entrySet()) {
@@ -70,36 +87,41 @@ public class EncryptedIndex {
 			}
 			
 			for (Entry<String, Collection<String>> entry : plaintext.asMap().entrySet()) {
-				String prfOutput = CryptoPrimitives.generateHmac(key, entry.getKey()).toString();
+				String prfOutput = new String(Base64.getEncoder().encode(CryptoPrimitives.generateHmac(key, entry.getKey())));
 				StringBuilder documentIds = new StringBuilder();
 				for (String id : entry.getValue()) {
-					documentIds.append(id);
-					documentIds.append("~");
+					documentIds.append(id.replace(' ', '%'));
+					documentIds.append(" ");
 				}
 				for (int i = 0; i < max - lengths.get(entry.getKey()); i++) {
 					documentIds.append("0");
 				}
-				documentIds.append("~");
+				if (documentIds.charAt(documentIds.length()-1) == ' ') {
+					documentIds.deleteCharAt(documentIds.length()-1);
+				}
+				
 				System.out.println(entry.getKey() + " -- " +documentIds.toString());
 				byte[] encryptedIds = CryptoPrimitives.encryptAES_CTR_String(key, CryptoPrimitives.randomBytes(16),
-						documentIds.substring(0, documentIds.length()-1), documentIds.substring(0, documentIds.length()-1).length()+3);
+						documentIds.toString(), documentIds.toString().length()+3);
 				
-				encrypted.put(prfOutput, encryptedIds.toString());
+				encrypted.put(prfOutput, new String(Base64.getEncoder().encode(encryptedIds)));
 			}	
 			
 		} catch (InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException
-				| NoSuchProviderException | NoSuchPaddingException | InvalidKeySpecException | IOException e) {
+				| NoSuchProviderException | NoSuchPaddingException | IOException e) {
 			encrypted = null;
 			e.printStackTrace();
-		} finally {
-			this.ENCRYPTED = encrypted;
 		}
+		
+		return encrypted;
 	}
 	
 	public static void main(String[] args) throws IOException {
-		Salt salt = Salt.fileToKey("mySalt");
+		new EncryptedIndex("mySalt", "test");
+		/*Salt salt = Salt.fileToKey("mySalt");
 		try {
-			byte[] key = CryptoPrimitives.keyGenSetM("test", salt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
+			Scanner scan = new Scanner(System.in);
+			byte[] key = CryptoPrimitives.keyGenSetM(scan.nextLine(), salt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 			byte[] key2 = CryptoPrimitives.keyGenSetM("test", salt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 			byte[] enc = CryptoPrimitives.encryptAES_CTR_String(key, CryptoPrimitives.randomBytes(16), "test", "test".length()+3);
 			byte[] out = CryptoPrimitives.decryptAES_CTR_String(enc, key2);
@@ -116,6 +138,6 @@ public class EncryptedIndex {
 		} catch (NoSuchPaddingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 }

@@ -17,7 +17,7 @@ public final class Query {
 	   * @param query String used to filter the Messages listed.
 	   * @throws IOException
 	   */
-	  private static List<Message> listMessagesMatchingQuery(EmailHandler handler, String query) throws IOException {
+	  private static List<String> listMessagesMatchingQuery(EmailHandler handler, String query) throws IOException {
 	    /** Me indicates the authenticated user **/
 		String userId = "me";
 	    Gmail service = handler.SERVICE;
@@ -35,9 +35,9 @@ public final class Query {
 	      }
 	    }
 	    
-	    List<Message> toreturn = new ArrayList<Message>();
+	    List<String> toreturn = new ArrayList<String>();
 	    for (Message message : messages) {
-	    	toreturn.add(service.users().messages().get(userId, message.getId()).execute());
+	    	toreturn.add(service.users().messages().get(userId, message.getId()).execute().getPayload().getBody().getData());
 	    }
 	    return toreturn;
 	  }
@@ -46,7 +46,7 @@ public final class Query {
 	   * Gets all the messages that match a token
 	   * * @throws IOException 
 	   */
-	  public static List<Message> queryToken(EmailHandler handler, String token) throws IOException {
+	  public static List<String> queryToken(EmailHandler handler, String token) throws IOException {
 		  return Query.listMessagesMatchingQuery(handler, "subject:" + token);
 	  }
 	  
@@ -57,8 +57,8 @@ public final class Query {
 	   * @return Emails that match
 	   * @throws IOException 
 	   */
-	  public static List<Message> queryTokens(EmailHandler handler, List<String> tokens) throws IOException {
-		  List<Message> messages = new ArrayList<Message>();
+	  public static List<String> queryTokens(EmailHandler handler, List<String> tokens) throws IOException {
+		  List<String> messages = new ArrayList<String>();
 		  for (String token : tokens) {
 			  messages.addAll(Query.queryToken(handler, token));
 		  }
