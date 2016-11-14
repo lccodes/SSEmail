@@ -80,9 +80,8 @@ public final class Upload {
      * @throws MessagingException
      * @throws IOException 
      */
-    private static Message createEmail(String address,
-                                          String subject,
-                                          String bodyText) throws MessagingException, IOException {
+    private static Message createEmail(String address, String subject, String bodyText) 
+    		throws MessagingException, IOException {
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
 
