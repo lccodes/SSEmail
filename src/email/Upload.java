@@ -2,6 +2,7 @@ package email;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -11,7 +12,6 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import com.google.api.client.util.Base64;
 import com.google.api.services.gmail.model.Message;
 
 import encrypt.EncryptedIndex;
@@ -24,6 +24,23 @@ public final class Upload {
 	 */
 	public static boolean uploadEncryptedIndex(EmailHandler handler, EncryptedIndex index) throws IOException {
 		return uploadFiles(handler, index.FILEENCRYPTED) && uploadFiles(handler, index.KEYWORDENCRYPTED);
+	}
+	
+	/**
+	 * Uploads the state for an EncryptedIndex
+	 * @throws IOException 
+	 */
+	public static boolean uploadState(EmailHandler handler, EncryptedIndex index) throws IOException {
+		if (index.STATE == null) {
+			return false;
+		}
+		
+		String hmac = new String(Base64.getEncoder().encode(index.STATE[0]));
+		String enc = new String(Base64.getEncoder().encode(index.STATE[1]));
+		
+		return Upload.uploadFile(handler,
+				new String(Base64.getEncoder().encode("STATE".getBytes())),
+				hmac + "||" + enc);
 	}
 	
 	/**
@@ -106,7 +123,7 @@ public final class Upload {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         email.writeTo(buffer);
         byte[] bytes = buffer.toByteArray();
-        String encodedEmail = Base64.encodeBase64URLSafeString(bytes);
+        String encodedEmail = com.google.api.client.util.Base64.encodeBase64URLSafeString(bytes);
         Message message = new Message();
         message.setRaw(encodedEmail);
         

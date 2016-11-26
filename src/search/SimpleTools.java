@@ -22,11 +22,14 @@ import email.Query;
 import email.Upload;
 import encrypt.EncryptedIndex;
 import encrypt.Salt;
+import encrypt.SimpleEncryptedIndex;
 
-public class Tools {
+public class SimpleTools {
 	
-	public static boolean createSearchableInbox(String keySaltPath, String folderPath) {
-		EncryptedIndex index = new EncryptedIndex(keySaltPath, folderPath);
+	public static boolean createSimpleSearchableInbox(String prfSaltPath, String aesSaltPath,
+			String folderPath) {
+		EncryptedIndex index = SimpleEncryptedIndex
+				.newSimpleEncryptedIndex(prfSaltPath, aesSaltPath, folderPath);
 		if (index.FILEENCRYPTED == null || index.KEYWORDENCRYPTED == null) {
 			return false;
 		}
@@ -41,16 +44,17 @@ public class Tools {
 		}
 	}
 	
-	public static String queryPlaintextToken(byte[] key, EmailHandler handler, String token) {
+	public static String queryPlaintextToken(byte[] prfKey, byte[] aesKey, 
+			EmailHandler handler, String token) {
 		try {
-			String prfOutput = new String(Base64.getEncoder().encode(CryptoPrimitives.generateHmac(key, token)));
+			String prfOutput = new String(Base64.getEncoder().encode(CryptoPrimitives.generateHmac(prfKey, token)));
 			List<String> results = Query.queryToken(handler, prfOutput);
 			if (results.size() == 0) {
 				return null;
 			}
 			String emailBody = new String(Base64.getDecoder().decode(results.get(0)));
 			byte[] encrypted = Base64.getDecoder().decode(emailBody);
-			byte[] decrypted = CryptoPrimitives.decryptAES_CTR_String(encrypted, key);
+			byte[] decrypted = CryptoPrimitives.decryptAES_CTR_String(encrypted, aesKey);
 			
 			return new String(decrypted);
 		} catch (IOException | NoSuchAlgorithmException | NoSuchProviderException | 
@@ -61,7 +65,8 @@ public class Tools {
 		}
 	}
 	
-	public static List<String> fetchFiles(byte[] key, EmailHandler handler, String fileList) {
+	public static List<String> fetchFiles(byte[] prfKey, byte[] aesKey, 
+			EmailHandler handler, String fileList) {
 		List<String> fileNames = Arrays.asList(fileList.split(" "));
 		List<String> allFileNames = new LinkedList<String>();
 		boolean skip = false;
@@ -81,27 +86,28 @@ public class Tools {
 		
 		List<String> plaintexts = new LinkedList<String>();
 		for (String fileName : allFileNames) {
-			plaintexts.add(Tools.queryPlaintextToken(key, handler, fileName.trim()).trim());
+			plaintexts.add(SimpleTools.queryPlaintextToken(prfKey, aesKey, handler, fileName.trim()).trim());
 		}
 		
 		return plaintexts;
 	}
 	
-	public static List<String> queryFetchFiles(Salt salt, String token) {
+	public static List<String> queryFetchFiles(Salt prfSalt, Salt aesSalt, String token) {
 		try {
 			EmailHandler handler = new EmailHandler();
 			
 			System.out.print("Password: ");
 			Scanner scan = new Scanner(System.in);
 			
-			byte[] key = CryptoPrimitives.keyGenSetM(scan.next(), salt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
+			byte[] prfKey = CryptoPrimitives.keyGenSetM(scan.next(), prfSalt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
+			byte[] aesKey = CryptoPrimitives.keyGenSetM(scan.next(), aesSalt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 			scan.close();
 			
-			String fileList = Tools.queryPlaintextToken(key, handler, token);
+			String fileList = SimpleTools.queryPlaintextToken(prfKey, aesKey, handler, token);
 			if (fileList == null) {
 				return new LinkedList<String>();
 			}
-			return Tools.fetchFiles(key, handler, fileList);
+			return SimpleTools.fetchFiles(prfKey, aesKey, handler, fileList);
 		} catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -110,7 +116,8 @@ public class Tools {
 	}
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		System.out.println(Tools.queryFetchFiles(Salt.fileToKey("mySalt"), "test"));
+		//TODO: lib fte
+		//System.out.println(SimpleTools.queryFetchFiles(Salt.fileToKey("mySalt"), "horse"));
 	}
 
 }

@@ -2,6 +2,7 @@ package email;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import com.google.api.services.gmail.Gmail;
@@ -9,6 +10,22 @@ import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 
 public final class Query {
+	
+	public static byte[][] downloadState(EmailHandler handler) throws IOException {
+		List<String> email = Query.queryToken(handler, 
+				new String(Base64.getEncoder().encode("STATE".getBytes())));
+		
+		if (email.size() != 1) {
+			return null;
+		}
+		String hmacAndState = new String(Base64.getDecoder().decode(email.get(0)));
+		String[] both = hmacAndState.split("||");
+		byte[][] each = new byte[2][];
+		each[0] = both[0].getBytes();
+		each[1] = both[1].getBytes();
+		
+		return each;
+	}
 	
 	/**
 	   * List all Messages of the user's mailbox matching the query.
@@ -65,5 +82,24 @@ public final class Query {
 		  
 		  return messages;
 	  }
+	  
+	  public static List<Message> getMessages(EmailHandler handler, String query) throws IOException {
+		    /** Me indicates the authenticated user **/
+			String userId = "me";
+		    Gmail service = handler.SERVICE;
+			ListMessagesResponse response = service.users().messages().list(userId).setQ(query).execute();
 
+		    List<Message> messages = new ArrayList<Message>();
+		    while (response.getMessages() != null) {
+		      messages.addAll(response.getMessages());
+		      if (response.getNextPageToken() != null) {
+		        String pageToken = response.getNextPageToken();
+		        response = service.users().messages().list(userId).setQ(query)
+		            .setPageToken(pageToken).execute();
+		      } else {
+		        break;
+		      }
+		    }
+		    return messages;
+	  }
 }
