@@ -45,8 +45,7 @@ public class Authenticate {
      * at ~/.credentials/gmail-java-quickstart
      */
     private static final List<String> SCOPES =
-        Arrays.asList(GmailScopes.GMAIL_INSERT, GmailScopes.GMAIL_SEND, GmailScopes.GMAIL_READONLY, 
-        		GmailScopes.MAIL_GOOGLE_COM, GmailScopes.GMAIL_MODIFY);
+        Arrays.asList(GmailScopes.MAIL_GOOGLE_COM,GmailScopes.GMAIL_MODIFY);
 
     static {
         try {

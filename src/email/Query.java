@@ -12,17 +12,17 @@ import com.google.api.services.gmail.model.Message;
 public final class Query {
 	
 	public static byte[][] downloadState(EmailHandler handler) throws IOException {
-		List<String> email = Query.queryToken(handler, 
+		List<String> results = Query.queryToken(handler, 
 				new String(Base64.getEncoder().encode("STATE".getBytes())));
 		
-		if (email.size() != 1) {
+		if (results.size() != 1) {
 			return null;
 		}
-		String hmacAndState = new String(Base64.getDecoder().decode(email.get(0)));
-		String[] both = hmacAndState.split("||");
+		String emailBody = new String(Base64.getDecoder().decode(results.get(0)));
+		String[] parts = emailBody.split("\\|");
 		byte[][] each = new byte[2][];
-		each[0] = both[0].getBytes();
-		each[1] = both[1].getBytes();
+		each[0] = Base64.getDecoder().decode(parts[0]);
+		each[1] = Base64.getDecoder().decode(parts[2]);
 		
 		return each;
 	}

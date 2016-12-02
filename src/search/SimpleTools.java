@@ -86,7 +86,12 @@ public class SimpleTools {
 		
 		List<String> plaintexts = new LinkedList<String>();
 		for (String fileName : allFileNames) {
-			plaintexts.add(SimpleTools.queryPlaintextToken(prfKey, aesKey, handler, fileName.trim()).trim());
+			String decryptedFile = SimpleTools.queryPlaintextToken(prfKey, aesKey, handler, fileName.trim()).trim();
+			if (decryptedFile == null) {
+				System.out.println("WARNING: file " + fileName + " was deleted");
+				continue;
+			}
+			plaintexts.add(decryptedFile);
 		}
 		
 		return plaintexts;

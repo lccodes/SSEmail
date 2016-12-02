@@ -28,8 +28,8 @@ public class SimpleEncryptedIndex {
 		Salt prfSalt = null;
 		Salt aesSalt = null;
 		try {
-			 prfSalt = Salt.fileToKey(prfSaltPath);
-			 aesSalt = Salt.fileToKey(aesSaltPath);
+			 prfSalt = Salt.fileToSalt(prfSaltPath);
+			 aesSalt = Salt.fileToSalt(aesSaltPath);
 		} catch (IOException e1) {
 			System.out.println("Could not find salt file");
 			return null;

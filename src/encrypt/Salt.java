@@ -25,7 +25,7 @@ public class Salt {
 		return new Salt(salt);
 	}
 	
-	public static Salt fileToKey(String file) throws FileNotFoundException, IOException {		
+	public static Salt fileToSalt(String file) throws FileNotFoundException, IOException {		
 		return new Salt(Files.readAllBytes(Paths.get("creds/" + file)));
 	}
 

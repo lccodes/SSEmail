@@ -12,12 +12,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 import javax.crypto.NoSuchPaddingException;
 
+import org.bouncycastle.util.Arrays;
 import org.crypto.sse.CryptoPrimitives;
 import org.crypto.sse.TextExtractPar;
 import org.crypto.sse.TextProc;
@@ -40,11 +42,11 @@ public class FSEncryptedIndex {
 		Salt aesSalt = null;
 		Salt authSalt = null;
 		try {
-			 prfSalt = Salt.fileToKey(prfSaltPath);
-			 aesSalt = Salt.fileToKey(aesSaltPath);
-			 authSalt = Salt.fileToKey(authSaltPath);
+			 prfSalt = Salt.fileToSalt(prfSaltPath);
+			 aesSalt = Salt.fileToSalt(aesSaltPath);
+			 authSalt = Salt.fileToSalt(authSaltPath);
 		} catch (IOException e1) {
-			System.out.println("Could not find salt file");
+			System.out.println("Could not find salt files");
 			return null;
 		}
 		
@@ -58,15 +60,18 @@ public class FSEncryptedIndex {
 			System.out.print("Password for AES: ");
 			aesKey = CryptoPrimitives.keyGenSetM(scan.next(), aesSalt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 			System.out.print("Password for AUTH: ");
-			aesKey = CryptoPrimitives.keyGenSetM(scan.next(), authSalt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
+			authKey = CryptoPrimitives.keyGenSetM(scan.next(), authSalt.SALT, Salt.ICOUNT, Salt.KEYSIZE);
 			Map<String, Integer> state = new HashMap<String, Integer>();
 			if (encryptedState != null) {
-				byte[][] decryptedBytes = CryptoPrimitives.auth_decrypt_AES_HMAC(authKey, prfKey, encryptedState);
+				byte[][] decryptedBytes = CryptoPrimitives.auth_decrypt_AES_HMAC(authKey, prfKey, 
+						encryptedState);
 				if (decryptedBytes[0][0] != '1') {
 					System.out.println("Corrupted state");
 					return null;
 				}
-				ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(decryptedBytes[1]));
+				byte[] tocopy = Arrays.copyOf(decryptedBytes[1], decryptedBytes[1].length-3);
+				byte[] todec = Base64.getDecoder().decode(new String(tocopy));
+				ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(todec));
 				state = (Map<String, Integer>) ois.readObject();
 			}
 			
@@ -95,8 +100,11 @@ public class FSEncryptedIndex {
 			oos.writeObject(state);
 			
 			byte[] stateByteArray = baos.toByteArray();
+			byte[] encodedBytes = Base64.getEncoder().encode(stateByteArray);
+			String out = new String(encodedBytes);
+			
 			byte[][] encryptedOutState = CryptoPrimitives.auth_encrypt_AES_HMAC(authKey, prfKey, 
-					CryptoPrimitives.randomBytes(16), stateByteArray.toString(), stateByteArray.length+3);
+					CryptoPrimitives.randomBytes(16), out, out.length()+3);
 			
 			return new EncryptedIndex(encryptedKeyword, encryptedFile, 
 					encryptedOutState, new Salt[]{prfSalt,aesSalt,authSalt});
@@ -122,5 +130,11 @@ public class FSEncryptedIndex {
 		}
 		
 		return null;
+	}
+	
+	public static void main(String[] args) throws IOException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidKeySpecException, ClassNotFoundException {
+		//byte[][] state = Query.downloadState(new EmailHandler());
+		//EncryptedIndex index = FSEncryptedIndex.newFSEEncryptedIndex("mySalt", "aesSalt", "authSalt", 
+		//		"test", state);
 	}
 }
