@@ -3,6 +3,17 @@ SSEmail is a edit+ forward secure symmetric searchable encryption (SSE) scheme i
 Gmail as the outsourced server. The library exposes two fundamental API calls that allow for the
 edit+ operation and the query operation. These are documented in the README. 
 
+### Modivation
+SSEmail proves wrong two common misconceptions: SSE is hard and structured encryption does not work
+on legacy systems. The library exposes SSE functionality that are trivial to use. It requires two
+lines of code to run a functional searchable encryption filesystem from your personal laptop. You
+can download the library and upload your files immediately with no modification; the library
+lets you choose your email account at runtime using Google's browser interface.
+
+Both protocols use a STE scheme, but the backend is very legacy. The project demonstrates that you
+can use STE on any legacy systems that support label value stores. This includes pretty much any
+outsourced server system. This represents a paradigm shift for the searchable encryption community.
+
 I built the library in modules so that it is extensible and easy to use.
 ## /email
 I started by writing the email package, which is standalone and allows storage and querying a
