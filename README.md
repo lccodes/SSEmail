@@ -7,7 +7,7 @@ Yahoo, and Hotmail without any cryptography knowledge.
 
 ## API
 The library offers two sets of APIs: one for the forward secure implementation and one for a more naive implementation. They
-are named FSTools and SimpleTools respectively.
+are named FSTools and SimpleTools respectively. They are located in the /search module.
 
 The key methods are:
   - createSearchableInbox which accepts three Salts and the path to the directory to be encrypted. 
