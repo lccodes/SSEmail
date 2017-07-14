@@ -21,8 +21,8 @@ import email.EmailHandler;
 import email.Query;
 import email.Upload;
 import encrypt.EncryptedIndex;
-import encrypt.Salt;
 import encrypt.SimpleEncryptedIndex;
+import encrypt.structures.Salt;
 
 public class SimpleTools {
 	

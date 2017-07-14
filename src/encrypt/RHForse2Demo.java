@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
 
 import javax.crypto.NoSuchPaddingException;
 
+import org.crypto.sse.CryptoPrimitives;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -153,7 +154,7 @@ public class RHForse2Demo {
 	// ***********************************************************************************************//
 	
 	
-	public static RHForse2 constructEMMParGMM(final byte[] key1, final byte[] key2, final Multimap<String, String> lookup) throws InterruptedException, ExecutionException, IOException {
+	public static RHForse2Demo constructEMMParGMM(final byte[] key1, final byte[] key2, final Multimap<String, String> lookup) throws InterruptedException, ExecutionException, IOException {
 
 		final Multimap<String, byte[]> old_dictionary = ArrayListMultimap.create();
 		final Multimap<String, byte[]> new_dictionary = ArrayListMultimap.create();
@@ -213,7 +214,7 @@ public class RHForse2Demo {
 		}
 		state_global_version ++;
 
-		return new RHForse2(old_dictionary, new_dictionary);
+		return new RHForse2Demo(old_dictionary, new_dictionary);
 	}
 	
 	

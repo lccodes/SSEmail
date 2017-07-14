@@ -27,6 +27,8 @@ import org.crypto.sse.TextProc;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+import encrypt.structures.Salt;
+
 public class FSEncryptedIndex {
 	public static final int LAMBDA = 2;
 	

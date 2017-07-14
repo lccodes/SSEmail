@@ -17,6 +17,8 @@ import org.crypto.sse.CryptoPrimitives;
 
 import com.google.common.collect.Multimap;
 
+import encrypt.structures.Salt;
+
 public class EncryptedIndex {
 	public final Map<String, String> KEYWORDENCRYPTED;
 	public final Map<String, String> FILEENCRYPTED;

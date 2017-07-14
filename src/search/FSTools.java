@@ -27,7 +27,7 @@ import email.Query;
 import email.Upload;
 import encrypt.EncryptedIndex;
 import encrypt.FSEncryptedIndex;
-import encrypt.Salt;
+import encrypt.structures.Salt;
 
 public final class FSTools {
 	

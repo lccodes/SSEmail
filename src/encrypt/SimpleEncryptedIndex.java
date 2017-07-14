@@ -17,6 +17,8 @@ import org.crypto.sse.CryptoPrimitives;
 import org.crypto.sse.TextExtractPar;
 import org.crypto.sse.TextProc;
 
+import encrypt.structures.Salt;
+
 public class SimpleEncryptedIndex {
 	
 	public SimpleEncryptedIndex() {

@@ -1,4 +1,4 @@
-package encrypt;
+package encrypt.structures;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
