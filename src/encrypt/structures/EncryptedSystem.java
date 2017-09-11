@@ -15,4 +15,9 @@ public class EncryptedSystem {
 		this.DXO = dxO;
 		this.DXN = dxN;
 	}
+
+	public boolean saveKeys(String localDir) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

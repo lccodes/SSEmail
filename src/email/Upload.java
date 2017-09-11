@@ -15,8 +15,20 @@ import javax.mail.internet.MimeMessage;
 import com.google.api.services.gmail.model.Message;
 
 import encrypt.EncryptedIndex;
+import encrypt.structures.EncryptedSystem;
 
 public final class Upload {
+	/**
+     * Uploads an encrypted system ignoring keys but 
+     * including EncryptedState
+     * @param handler 
+     * @param system
+     * @return
+     */
+	public static boolean uploadEncryptedSystem(EmailHandler handler, EncryptedSystem system) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 	/**
 	 * Uploads an EncryptedIndex
